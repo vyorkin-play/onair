@@ -1,4 +1,3 @@
-# lctv-onair
-shows whats on air on LCTV
+# onair
 
 Just practicing CycleJS, nothing serious.
