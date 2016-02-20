@@ -1,12 +1,10 @@
 import Cycle from '@cycle/core';
 import CycleDOM, {
   h,
-  h1,
-  span,
-  label,
-  input,
-  hr,
   div,
+  label,
+  button,
+  p,
   makeDOMDriver
 } from '@cycle/dom';
 
@@ -14,16 +12,25 @@ import Rx from 'rx';
 import styles from './index.css';
 
 function main(sources) {
-  const inputEv$ = sources.DOM.select('.field').events('input');
-  const name$ = inputEv$.map(ev => ev.target.value).startWith('');
+  const decClick$ = sources.DOM.select('.dec').events('click');
+  const incClick$ = sources.DOM.select('.inc').events('click');
+
+  const incAction$ = incClick$.map(c => +1);
+  const decAction$ = decClick$.map(c => -1);
+
+  const number$ = Rx.Observable.of(0)
+    .merge(incAction$)
+    .merge(decAction$)
+    .scan((p, c) => p + c);
 
   return {
-    DOM: name$.map(name =>
+    DOM: number$.map(number =>
       div([
-        label('Name:'),
-        input('.field', { type: 'text' }),
-        hr(),
-        h1(name)
+        button('.dec', 'dec'),
+        button('.inc', 'inc'),
+        p([
+          label(String(number))
+        ])
       ])
     )
   };
