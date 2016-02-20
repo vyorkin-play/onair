@@ -12,4 +12,4 @@ const drivers = {
   HTTP: makeHTTPDriver()
 };
 
-Cycle.run(bmi, drivers);
+Cycle.run(onAir, drivers);

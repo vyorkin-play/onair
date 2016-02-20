@@ -75,7 +75,7 @@ function channelInfo(channel) {
 }
 
 const QUERY = 'cs';
-const ENDPOINT_URL = 'https://api.twitch.tv/kraken/search/channels?q=';
+const ENDPOINT_URL = 'https://api.twitch.tv/kraken/search/channels?limit=30&q=';
 const CLIENT_ID = '57pvj6z1nfoaf62few2xnzro1q7mnka';
 
 function intent(DOMSource) {
@@ -83,7 +83,8 @@ function intent(DOMSource) {
     .select(style('query'))
     .events('input')
     .debounce(1000)
-    .map(e => e.target.value);
+    .map(e => e.target.value)
+    .startWith(QUERY);
 
   return { query$ };
 }
