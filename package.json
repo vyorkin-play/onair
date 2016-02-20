@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@cycle/core": "6.0.2",
+    "@cycle/dom": "9.1.0",
     "rx": "4.0.8"
   }
 }
