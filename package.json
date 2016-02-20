@@ -41,6 +41,7 @@
     "webpack": "^2.0.1-beta"
   },
   "dependencies": {
+    "@cycle/core": "6.0.2",
     "rx": "4.0.8"
   }
 }

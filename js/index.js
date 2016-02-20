@@ -1,48 +1,69 @@
+import Cycle from '@cycle/core';
 import Rx from 'rx';
 import styles from './index.css';
 
+function h(tagName, children) {
+  return { 
+    tagName,
+    children
+  };
+}
+
 function main(sources) {
-  const click$ = sources.DOM;
+  const over$ = sources.DOM.selectEvents('span', 'mouseover');
   const sinks = {
-    DOM: click$
-      .startWith('zalupa')
-      .flatMapLatest(() =>
-        Rx.Observable.timer(0, 1000).map(i => `tick: ${i}`)
-      ),
+    DOM: over$
+      .startWith(null)
+      .flatMapLatest(() => Rx.Observable.timer(0, 1000).map(i =>
+        h('h1', [h('span', [`elapsed: ${i}`])])
+      )),
     Log: Rx.Observable.timer(0, 2000).map(i => i * 2)
   };
 
   return sinks;
 }
 
-function DOMDriver(text$) {
-  text$.subscribe(text => {
-    const container = document.querySelector('#app');
-    container.textContent = text;
-  });
+function makeDOMDriver(mountSelector) {
+  return function DOMDriver(obj$) {
+    function createElement(element) {
+      const { tagName, children } = element;
+      const el = document.createElement(tagName);
 
-  const DOMSource = Rx.Observable.fromEvent(document, 'click');
-  return DOMSource;
+      children
+        .filter(c => typeof c === 'object')
+        .map(createElement)
+        .forEach(c => el.appendChild(c));
+
+      children
+        .filter(c => typeof c === 'string')
+        .forEach(s => el.innerHTML += s);
+
+      return el;
+    }
+
+    obj$.subscribe(obj => {
+      const container = document.querySelector(mountSelector);
+      container.innerHTML = '';
+      const el = createElement(obj);
+      container.appendChild(el);
+    });
+
+    const DOMSource = {
+      selectEvents: (tagName, eventType) =>
+        Rx.Observable
+          .fromEvent(document, eventType)
+          .filter(e => e.target.tagName === tagName.toUpperCase())
+    };
+
+    return DOMSource;
+  }
 }
 
 const consoleLogDriver = text$ =>
   text$.subscribe(t => console.log(t));
 
-function run(mainFn, drivers) {
-  const proxySources = {};
-  Object.keys(drivers).forEach(key => {
-    proxySources[key] = new Rx.Subject();
-  });
-
-  const sinks = mainFn(proxySources);
-  Object.keys(drivers).forEach(key => {
-    const source = drivers[key](sinks[key])
-    source.subscribe(x => proxySources[key].onNext(x));
-  });
-}
-
 const drivers = {
-  DOM: DOMDriver
+  DOM: makeDOMDriver('#app')
 };
 
-run(main, drivers);
+Cycle.run(main, drivers);
